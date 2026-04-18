@@ -32,7 +32,7 @@ private:
     std::atomic<bool> m_buttonPressed{false};
     std::atomic<bool> m_packetReceived{false};
     
-    static constexpr size_t UartDmaRxBufferSize = 256;
+    static constexpr size_t UartDmaRxBufferSize = 16;
 
     uint8_t g_uartDmaRxBuffer[UartDmaRxBufferSize];
     volatile size_t g_uartDmaLastPos = 0;

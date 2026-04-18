@@ -18,13 +18,46 @@ void ServoMotor::Init(TIM_HandleTypeDef& htim1)
     m_htim = &htim1;
 
     m_currentPulse = PulseFromAngle(90);
+    m_targetPulse = m_currentPulse;
     SetPulse(m_currentPulse);
     // RunTestSequence();
 }
 
+void ServoMotor::Update(uint32_t deltaMs)
+{
+    if (m_currentPulse == m_targetPulse)
+    {
+        return;
+    }
+
+    const uint32_t maxStep = PulseFromAngle(m_speedDegPerSec) * (deltaMs / 1000.0f);
+
+    if (m_currentPulse < m_targetPulse)
+    {
+        m_currentPulse += maxStep;
+
+        if (m_currentPulse > m_targetPulse)
+        {
+            m_currentPulse = m_targetPulse;
+        }
+    }
+    else
+    {
+        m_currentPulse -= maxStep;
+
+        if (m_currentPulse < m_targetPulse)
+        {
+            m_currentPulse = m_targetPulse;
+        }
+    }
+
+    SetPulse(m_currentPulse);
+}
+
 void ServoMotor::RunCommand(uint32_t command)
 {
-    const uint32_t currentPulse = GetCurrentPulse();
+    const uint32_t currentPulse = m_targetPulse;
+    // const uint32_t currentPulse = GetCurrentPulse();
     const int32_t valueAngle = Packet::GetValue(command);
     const uint32_t pulseStep = PulseStepFromAngleDelta(valueAngle);
 
@@ -67,12 +100,18 @@ void ServoMotor::RunCommand(uint32_t command)
 
     // HAL_UART_Transmit(&huart2, (uint8_t*)msg, strlen(msg), HAL_MAX_DELAY);
 
-    SetPulse(nextPulse);
+    SetTargetPulse(nextPulse);
 }
 
 void ServoMotor::RunTestSequence()
 {
     uint32_t angle = 0;
+    if (Packet::MakePacket(0, MessageTypes::Command, CommandTypes::MotorLeft, 10, angle))
+    {
+        RunCommand(angle);
+        return;
+    }
+    
     if (Packet::MakePacket(0, MessageTypes::Command, CommandTypes::MotorLeft, 10, angle))
     {
         RunCommand(angle);
@@ -179,4 +218,9 @@ uint32_t ServoMotor::PulseStepFromAngleDelta(int32_t angleDelta) const
     }
 
     return (uint32_t)(((SERVO_MAX_PULSE_US - SERVO_MIN_PULSE_US) * (uint32_t)angleDelta) / 180U);
+}
+
+void ServoMotor::SetTargetPulse(uint32_t targetPulse)
+{
+    m_targetPulse = targetPulse;
 }

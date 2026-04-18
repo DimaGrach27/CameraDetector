@@ -55,7 +55,12 @@ void App::Loop()
         // printf("=== ProcessPacket end! ===\n\r");
     }
 
-    m_servoMotor.Update();
+    static uint32_t lastTick = HAL_GetTick();
+    const uint32_t now = HAL_GetTick();
+    const uint32_t deltaMs = now - lastTick;
+    lastTick = now;
+
+    m_servoMotor.Update(deltaMs);
 }
 
 void App::Release()
