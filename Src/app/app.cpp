@@ -38,14 +38,15 @@ void App::Loop()
         m_servoMotor.RunTestSequence();
     }
 
-    if (g_uartRxPending)
-    {
-        g_uartRxPending = false;
-        Uart_FetchFromDmaToRingBuffer();
+    // if (g_uartRxPending)
+    // {
+    //     g_uartRxPending = false;
+    //     Uart_FetchFromDmaToRingBuffer();
 
-        // printf("Uart_FetchFromDmaToRingBuffer done!\n\r");
-    }
+    //     // printf("Uart_FetchFromDmaToRingBuffer done!\n\r");
+    // }
 
+    // if (m_packetBuffer.Size() >= Packet::PACKET_SIZE_PLUS_HEADER)
     if (m_packetBuffer.Size() >= Packet::PACKET_SIZE_PLUS_HEADER)
     {
         // printf("=== ProcessPacket start! ===\n\r");
@@ -53,6 +54,8 @@ void App::Loop()
         ProcessPacket();
         // printf("=== ProcessPacket end! ===\n\r");
     }
+
+    m_servoMotor.Update();
 }
 
 void App::Release()
@@ -153,73 +156,55 @@ void App::GPIO_EXTI_Callback(uint16_t GPIO_Pin)
     }
 }
 
-void App::UART_RxCpltCallback(UART_HandleTypeDef *huart)
-{
-    return;
+// void App::UART_RxCpltCallback(UART_HandleTypeDef *huart)
+// {
+//     return;
 
-    if (huart->Instance == USART1)
-    {
-        for (int i = 0; i < Packet::PACKET_SIZE_PLUS_HEADER; ++i)
-        {
-            m_packetBuffer.Push(m_rxBuffer[i]);
-        }
+//     if (huart->Instance == USART1)
+//     {
+//         for (int i = 0; i < Packet::PACKET_SIZE_PLUS_HEADER; ++i)
+//         {
+//             m_packetBuffer.Push(m_rxBuffer[i]);
+//         }
 
-        // m_packetBuffer.Push(m_rxByte);
-        // HAL_UART_Receive_IT(m_huart1, &m_rxByte, 1);
+//         // m_packetBuffer.Push(m_rxByte);
+//         // HAL_UART_Receive_IT(m_huart1, &m_rxByte, 1);
 
-        if (HAL_UART_Receive_IT(huart, m_rxBuffer, Packet::PACKET_SIZE_PLUS_HEADER) != HAL_OK)
-        {
-            // Handle error: could retry, log, or set an error flag
-            // Example: retry once (optional)
-            HAL_UART_Receive_IT(huart, m_rxBuffer, Packet::PACKET_SIZE_PLUS_HEADER);
-        }
-    }
-}
+//         if (HAL_UART_Receive_IT(huart, m_rxBuffer, Packet::PACKET_SIZE_PLUS_HEADER) != HAL_OK)
+//         {
+//             // Handle error: could retry, log, or set an error flag
+//             // Example: retry once (optional)
+//             HAL_UART_Receive_IT(huart, m_rxBuffer, Packet::PACKET_SIZE_PLUS_HEADER);
+//         }
+//     }
+// }
 
 void App::Uart_StartDmaReception()
 {
-    HAL_UART_Receive_DMA(m_huart1, g_uartDmaRxBuffer, UartDmaRxBufferSize);
-    __HAL_UART_ENABLE_IT(m_huart1, UART_IT_IDLE);
+    HAL_UARTEx_ReceiveToIdle_DMA(m_huart1, g_uartDmaRxBuffer, UartDmaRxBufferSize);
+
+    if (m_huart1->hdmarx != nullptr)
+    {
+        __HAL_DMA_DISABLE_IT(m_huart1->hdmarx, DMA_IT_HT);
+    }
 }
 
-void App::Uart_FetchFromDmaToRingBuffer()
+void App::UART_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size)
 {
-    size_t currentPos = UartDmaRxBufferSize - __HAL_DMA_GET_COUNTER(m_huart1->hdmarx);
-
-    char dbg[128];
-    snprintf(dbg, sizeof(dbg),
-         "NDTR=%u currentPos=%u lastPos=%u RxState=%u Error=%lu\r\n",
-         (unsigned)__HAL_DMA_GET_COUNTER(m_huart1->hdmarx),
-         (unsigned)currentPos,
-         (unsigned)g_uartDmaLastPos,
-         (unsigned)m_huart1->RxState,
-         (unsigned long)m_huart1->ErrorCode);
-    HAL_UART_Transmit(&huart2, (uint8_t*)dbg, strlen(dbg), HAL_MAX_DELAY);
-
-    if (currentPos == g_uartDmaLastPos)
+    if (huart->Instance != USART1)
     {
         return;
     }
 
-    if (currentPos > g_uartDmaLastPos)
+    for (uint16_t i = 0; i < Size; ++i)
     {
-        for (size_t i = g_uartDmaLastPos; i < currentPos; ++i)
-        {
-            m_packetBuffer.Push(g_uartDmaRxBuffer[i]);
-        }
-    }
-    else
-    {
-        for (size_t i = g_uartDmaLastPos; i < UartDmaRxBufferSize; ++i)
-        {
-            m_packetBuffer.Push(g_uartDmaRxBuffer[i]);
-        }
-
-        for (size_t i = 0; i < currentPos; ++i)
-        {
-            m_packetBuffer.Push(g_uartDmaRxBuffer[i]);
-        }
+        m_packetBuffer.Push(g_uartDmaRxBuffer[i]);
     }
 
-    g_uartDmaLastPos = currentPos;
+    HAL_UARTEx_ReceiveToIdle_DMA(m_huart1, g_uartDmaRxBuffer, UartDmaRxBufferSize);
+
+    if (m_huart1->hdmarx != nullptr)
+    {
+        __HAL_DMA_DISABLE_IT(m_huart1->hdmarx, DMA_IT_HT);
+    }
 }

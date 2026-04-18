@@ -71,9 +71,9 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
   App_GPIO_EXTI_Callback(GPIO_Pin);
 }
 
-void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
+void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size)
 {
-  App_UART_RxCpltCallback(huart);
+  App_UART_RxEventCallback(huart, Size);
 }
 
 int __io_putchar(int ch)

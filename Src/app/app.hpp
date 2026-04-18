@@ -18,14 +18,14 @@ public:
     void Run(TIM_HandleTypeDef& htim1, UART_HandleTypeDef& huart1);
     void Loop();
     void Release();
-    void GPIO_EXTI_Callback(uint16_t GPIO_Pin);
-    void UART_RxCpltCallback(UART_HandleTypeDef *huart);
 
-    void Uart_StartDmaReception();
-    void Uart_FetchFromDmaToRingBuffer();
+    void GPIO_EXTI_Callback(uint16_t GPIO_Pin);
+    void UART_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size);
 
 private:
+    void Uart_StartDmaReception();
     void ProcessPacket();
+
 private:
     ServoMotor m_servoMotor;
 
@@ -43,5 +43,4 @@ private:
     RingBuffer128 m_packetBuffer;
 
     UART_HandleTypeDef* m_huart1;
-
 };
