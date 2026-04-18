@@ -30,8 +30,7 @@ private:
 
     std::atomic<bool> m_buttonPressed{false};
     
-    uint8_t m_rxBuffer[Packet::PACKET_SIZE_PLUS_HEADER];
-    // uint8_t m_rxByte;
+    uint8_t m_rxByte;
 
     RingBuffer128 m_packetBuffer;
 

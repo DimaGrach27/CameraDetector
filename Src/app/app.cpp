@@ -21,8 +21,7 @@ void App::Run(TIM_HandleTypeDef& htim1, UART_HandleTypeDef& huart1)
 
     m_servoMotor.Init(htim1);
 
-    // HAL_UART_Receive_IT(m_huart1, &m_rxByte, 1);
-    HAL_UART_Receive_IT(m_huart1, m_rxBuffer, Packet::PACKET_SIZE_PLUS_HEADER);
+    HAL_UART_Receive_IT(m_huart1, &m_rxByte, 1);
 }
 
 void App::Loop()
@@ -53,25 +52,38 @@ void App::Release()
 
 void App::ProcessPacket()
 {
+    while (m_packetBuffer.Size() > 0)
+    {
+        uint8_t headerByte = 0;
+        if (!m_packetBuffer.Pick(headerByte))
+        {
+            return;
+        }
+
+        if (Packet::IsHeader(headerByte))
+        {
+            break;
+        }
+
+        m_packetBuffer.Pop(headerByte);
+    }
+
+    if (m_packetBuffer.Size() < Packet::PACKET_SIZE_PLUS_HEADER)
+    {
+        return;
+    }
+
     uint8_t headerByte = 0;
     if (!m_packetBuffer.Pop(headerByte))
     {
         return;
     }
 
-    if (!Packet::IsHeader(headerByte))
-    {
-        printf("Not a header byte. Byte:%02X\r\n", headerByte);
-        return;
-    }
-
     uint8_t bufferedPacket[Packet::PACKET_SIZE];
-
     for (uint8_t i = 0; i < Packet::PACKET_SIZE; ++i)
     {
         if (!m_packetBuffer.Pop(bufferedPacket[i]))
         {
-            printf("Failed to pop byte from packet buffer\r\n");
             return;
         }
     }
@@ -131,19 +143,11 @@ void App::UART_RxCpltCallback(UART_HandleTypeDef *huart)
 {
     if (huart->Instance == USART1)
     {
-        // m_packetBuffer.Push(m_rxByte);
-        // HAL_UART_Receive_IT(huart, &m_rxByte, 1);
+        m_packetBuffer.Push(m_rxByte);
 
-        for (int i = 0; i < Packet::PACKET_SIZE_PLUS_HEADER; ++i)
+        if (HAL_UART_Receive_IT(huart, &m_rxByte, 1) != HAL_OK)
         {
-            m_packetBuffer.Push(m_rxBuffer[i]);
-        }
-
-        if (HAL_UART_Receive_IT(huart, m_rxBuffer, Packet::PACKET_SIZE_PLUS_HEADER) != HAL_OK)
-        {
-            // Handle error: could retry, log, or set an error flag
-            // Example: retry once (optional)
-            HAL_UART_Receive_IT(huart, m_rxBuffer, Packet::PACKET_SIZE_PLUS_HEADER);
+            HAL_UART_Receive_IT(huart, &m_rxByte, 1);
         }
     }
 }
