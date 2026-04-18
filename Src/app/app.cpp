@@ -8,8 +8,6 @@ extern UART_HandleTypeDef huart2;
 #include <cstdio>
 #include <cstring>
 
-// #define END_STRING + "\n\r"
-
 // int __io_putchar(int ch)
 // {
 //   uint8_t byte = (uint8_t)ch;
@@ -23,11 +21,8 @@ void App::Run(TIM_HandleTypeDef& htim1, UART_HandleTypeDef& huart1)
 
     m_servoMotor.Init(htim1);
 
-    Uart_StartDmaReception();
-    //HAL_UART_Receive_IT(m_huart1, m_rxBuffer, Packet::PACKET_SIZE_PLUS_HEADER);
     // HAL_UART_Receive_IT(m_huart1, &m_rxByte, 1);
-
-    // printf("AppRun done!\n\r");
+    HAL_UART_Receive_IT(m_huart1, m_rxBuffer, Packet::PACKET_SIZE_PLUS_HEADER);
 }
 
 void App::Loop()
@@ -38,21 +33,9 @@ void App::Loop()
         m_servoMotor.RunTestSequence();
     }
 
-    // if (g_uartRxPending)
-    // {
-    //     g_uartRxPending = false;
-    //     Uart_FetchFromDmaToRingBuffer();
-
-    //     // printf("Uart_FetchFromDmaToRingBuffer done!\n\r");
-    // }
-
-    // if (m_packetBuffer.Size() >= Packet::PACKET_SIZE_PLUS_HEADER)
     if (m_packetBuffer.Size() >= Packet::PACKET_SIZE_PLUS_HEADER)
     {
-        // printf("=== ProcessPacket start! ===\n\r");
-
         ProcessPacket();
-        // printf("=== ProcessPacket end! ===\n\r");
     }
 
     static uint32_t lastTick = HAL_GetTick();
@@ -70,7 +53,7 @@ void App::Release()
 
 void App::ProcessPacket()
 {
-    uint8_t headerByte;
+    uint8_t headerByte = 0;
     if (!m_packetBuffer.Pop(headerByte))
     {
         return;
@@ -78,8 +61,7 @@ void App::ProcessPacket()
 
     if (!Packet::IsHeader(headerByte))
     {
-        // printf("=== Not a header! ===\n\r");
-
+        printf("Not a header byte. Byte:%02X\r\n", headerByte);
         return;
     }
 
@@ -89,32 +71,23 @@ void App::ProcessPacket()
     {
         if (!m_packetBuffer.Pop(bufferedPacket[i]))
         {
-            // const char *msg = "Failed to pop byte from packet buffer\r\n";
-            // std::cout << msg << std::endl;
-            // HAL_UART_Transmit(m_huart1, (uint8_t*)msg, strlen(msg), HAL_MAX_DELAY);
-            return; // Failed to pop byte, exit processing
+            printf("Failed to pop byte from packet buffer\r\n");
+            return;
         }
     }
 
     uint32_t packet = Packet::BytesToPacket(bufferedPacket);
 
-    // char msg[128];
-    // snprintf(msg, sizeof(msg),
-    // printf(msg, sizeof(msg),
-    //      "raw:%02X %02X %02X %02X packet:%08lX cmd:%u val:%u valid:%u\r\n",
-    //      bufferedPacket[0], bufferedPacket[1], bufferedPacket[2], bufferedPacket[3],
-    //      (unsigned long)packet,
-    //      (unsigned)Packet::GetCommandType(packet),
-    //      (unsigned)Packet::GetValue(packet),
-    //      (unsigned)Packet::ValidatePacket(packet));
-    // HAL_UART_Transmit(&huart2, (uint8_t*)msg, strlen(msg), HAL_MAX_DELAY);
+    printf("raw:%02X %02X %02X %02X packet:%08lX cmd:%u val:%u valid:%u\r\n",
+         bufferedPacket[0], bufferedPacket[1], bufferedPacket[2], bufferedPacket[3],
+         (unsigned long)packet,
+         (unsigned)Packet::GetCommandType(packet),
+         (unsigned)Packet::GetValue(packet),
+         (unsigned)Packet::ValidatePacket(packet));
 
 
     if (!Packet::ValidatePacket(packet))
     {
-        // const char *msg = "Invalid packet\r\n";
-        // std::cout << msg << std::endl;
-        // HAL_UART_Transmit(m_huart1, (uint8_t*)msg, strlen(msg), HAL_MAX_DELAY);
         return;
     }
 
@@ -127,20 +100,13 @@ void App::ProcessPacket()
     switch (Packet::GetCommandType(packet))
     {
         case CommandTypes::SetLED:
-            if (Packet::GetValue(packet) == 0)
+            if (Packet::GetValue(packet) == 1)
             {
                 HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, GPIO_PIN_RESET);
-                
-                // const char *msg = "LED OFF\r\n";
-                // std::cout << msg << std::endl;
-                // HAL_UART_Transmit(m_huart1, (uint8_t*)msg, strlen(msg), HAL_MAX_DELAY);
             }
             else
             {
                 HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, GPIO_PIN_SET);
-                // const char *msg = "LED ON\r\n";
-                // std::cout << msg << std::endl;
-                // HAL_UART_Transmit(m_huart1, (uint8_t*)msg, strlen(msg), HAL_MAX_DELAY);
             }
             break;
         case CommandTypes::MotorLeft:
@@ -161,55 +127,23 @@ void App::GPIO_EXTI_Callback(uint16_t GPIO_Pin)
     }
 }
 
-// void App::UART_RxCpltCallback(UART_HandleTypeDef *huart)
-// {
-//     return;
-
-//     if (huart->Instance == USART1)
-//     {
-//         for (int i = 0; i < Packet::PACKET_SIZE_PLUS_HEADER; ++i)
-//         {
-//             m_packetBuffer.Push(m_rxBuffer[i]);
-//         }
-
-//         // m_packetBuffer.Push(m_rxByte);
-//         // HAL_UART_Receive_IT(m_huart1, &m_rxByte, 1);
-
-//         if (HAL_UART_Receive_IT(huart, m_rxBuffer, Packet::PACKET_SIZE_PLUS_HEADER) != HAL_OK)
-//         {
-//             // Handle error: could retry, log, or set an error flag
-//             // Example: retry once (optional)
-//             HAL_UART_Receive_IT(huart, m_rxBuffer, Packet::PACKET_SIZE_PLUS_HEADER);
-//         }
-//     }
-// }
-
-void App::Uart_StartDmaReception()
+void App::UART_RxCpltCallback(UART_HandleTypeDef *huart)
 {
-    HAL_UARTEx_ReceiveToIdle_DMA(m_huart1, g_uartDmaRxBuffer, UartDmaRxBufferSize);
-
-    if (m_huart1->hdmarx != nullptr)
+    if (huart->Instance == USART1)
     {
-        __HAL_DMA_DISABLE_IT(m_huart1->hdmarx, DMA_IT_HT);
-    }
-}
+        // m_packetBuffer.Push(m_rxByte);
+        // HAL_UART_Receive_IT(huart, &m_rxByte, 1);
 
-void App::UART_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size)
-{
-    if (huart->Instance != USART1)
-    {
-        return;
-    }
+        for (int i = 0; i < Packet::PACKET_SIZE_PLUS_HEADER; ++i)
+        {
+            m_packetBuffer.Push(m_rxBuffer[i]);
+        }
 
-    for (uint16_t i = 0; i < Size; ++i)
-    {
-        m_packetBuffer.Push(g_uartDmaRxBuffer[i]);
-    }
-
-    HAL_UARTEx_ReceiveToIdle_DMA(m_huart1, g_uartDmaRxBuffer, UartDmaRxBufferSize);
-
-    if (m_huart1->hdmarx != nullptr)
-    {
-        __HAL_DMA_DISABLE_IT(m_huart1->hdmarx, DMA_IT_HT);
+        if (HAL_UART_Receive_IT(huart, m_rxBuffer, Packet::PACKET_SIZE_PLUS_HEADER) != HAL_OK)
+        {
+            // Handle error: could retry, log, or set an error flag
+            // Example: retry once (optional)
+            HAL_UART_Receive_IT(huart, m_rxBuffer, Packet::PACKET_SIZE_PLUS_HEADER);
+        }
     }
 }

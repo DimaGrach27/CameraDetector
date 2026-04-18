@@ -24,7 +24,12 @@ extern "C" void App_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
     app.GPIO_EXTI_Callback(GPIO_Pin);
 }
 
-extern "C" void App_UART_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size)
+extern "C" void App_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 {
-    app.UART_RxEventCallback(huart, Size);
+    app.UART_RxCpltCallback(huart);
+}
+
+extern "C" void App_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size)
+{
+    // app.UARTEx_RxEventCallback(huart, Size);
 }

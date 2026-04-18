@@ -20,25 +20,18 @@ public:
     void Release();
 
     void GPIO_EXTI_Callback(uint16_t GPIO_Pin);
-    void UART_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size);
+    void UART_RxCpltCallback(UART_HandleTypeDef *huart);
 
 private:
-    void Uart_StartDmaReception();
     void ProcessPacket();
 
 private:
     ServoMotor m_servoMotor;
 
     std::atomic<bool> m_buttonPressed{false};
-    std::atomic<bool> m_packetReceived{false};
-    
-    static constexpr size_t UartDmaRxBufferSize = 16;
-
-    uint8_t g_uartDmaRxBuffer[UartDmaRxBufferSize];
-    volatile size_t g_uartDmaLastPos = 0;
     
     uint8_t m_rxBuffer[Packet::PACKET_SIZE_PLUS_HEADER];
-    uint8_t m_rxByte;
+    // uint8_t m_rxByte;
 
     RingBuffer128 m_packetBuffer;
 
