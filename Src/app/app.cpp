@@ -112,7 +112,7 @@ void App::ProcessPacket()
     switch (Packet::GetCommandType(packet))
     {
         case CommandTypes::SetLED:
-            if (Packet::GetValue(packet) == 1)
+            if (Packet::GetValue(packet) == 0)
             {
                 HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, GPIO_PIN_RESET);
             }
