@@ -18,12 +18,14 @@ find_package(OpenCV REQUIRED COMPONENTS
 file(GLOB_RECURSE SOURCES CONFIGURE_DEPENDS "src/*.cpp")
 
 add_executable(${PROJECT_NAME} ${SOURCES})
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../shared ${CMAKE_BINARY_DIR}/shared_pi)
 
 file(COPY ${CMAKE_SOURCE_DIR}/resources DESTINATION ${CMAKE_BINARY_DIR})
 
 target_include_directories(${PROJECT_NAME}
     PRIVATE
     ${OpenCV_INCLUDE_DIRS}
+    ${CMAKE_CURRENT_SOURCE_DIR}/../shared
 )
 
 target_link_options(${PROJECT_NAME} PRIVATE
@@ -36,7 +38,7 @@ target_link_libraries(${PROJECT_NAME}
     ${OpenCV_LIBS}
 
     hailort
-
+    shared_protocol
     # armadillo
     # arpack
 

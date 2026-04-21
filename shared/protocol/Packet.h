@@ -19,6 +19,14 @@ enum class CommandTypes : uint8_t
     Count = 0x04
 };
 
+struct PacketStruct
+{
+    const uint8_t device_id; 
+    const MessageTypes message_type; 
+    const CommandTypes command_type;
+    const uint8_t value;
+};
+
 class Packet
 {
 public:
@@ -59,8 +67,8 @@ static inline uint8_t GetValue(const uint32_t packet)
 
 static uint8_t CalculateChecksum(const uint32_t packet);
 
-static bool ValidatePacketFields(const uint8_t device_id, const MessageTypes message_type, const CommandTypes command_type, const uint8_t value);
-static bool MakePacket(const uint8_t device_id, const MessageTypes message_type, const CommandTypes command_type, const uint8_t value, uint32_t& out_packet);
+static bool ValidatePacketFields(const PacketStruct packetStruct);
+static bool MakePacket(const PacketStruct packetStruct, uint32_t& out_packet);
 static bool IsChecksumValid(const uint32_t packet);
 static bool ValidatePacket(const uint32_t packet);
 

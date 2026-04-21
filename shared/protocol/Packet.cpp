@@ -1,4 +1,4 @@
-#include "app/packet.hpp"
+#include "Packet.h"
 
 #include <cstdint>
 
@@ -14,35 +14,35 @@ uint8_t Packet::CalculateChecksum(const uint32_t packet)
     return sum;
 }
 
-bool Packet::ValidatePacketFields(const uint8_t device_id, const MessageTypes message_type, const CommandTypes command_type, const uint8_t value)
+bool Packet::ValidatePacketFields(const PacketStruct packetStruct)
 {
-    if (device_id > DEVICE_ID_MASK)
+    if (packetStruct.device_id > DEVICE_ID_MASK)
     {
         return false;
     }
     
-    if (message_type >= MessageTypes::Count)
+    if (packetStruct.message_type >= MessageTypes::Count)
     {
         return false;
     }
     
-    if (command_type >= CommandTypes::Count)
+    if (packetStruct.command_type >= CommandTypes::Count)
     {
         return false;
     }
     
-    if (command_type == CommandTypes::SetLED && value > 1)
+    if (packetStruct.command_type == CommandTypes::SetLED && packetStruct.value > 1)
     {
         return false;
     }
     
-    if ((message_type == MessageTypes::Command && command_type == CommandTypes::Motion && value != 0)
-        || (message_type == MessageTypes::Response && command_type == CommandTypes::Motion && value > 1))
+    if ((packetStruct.message_type == MessageTypes::Command && packetStruct.command_type == CommandTypes::Motion && packetStruct.value != 0)
+        || (packetStruct.message_type == MessageTypes::Response && packetStruct.command_type == CommandTypes::Motion && packetStruct.value > 1))
     {
         return false;
     }
     
-    if ((command_type == CommandTypes::MotorLeft || command_type == CommandTypes::MotorRight) && value > 180)
+    if ((packetStruct.command_type == CommandTypes::MotorLeft || packetStruct.command_type == CommandTypes::MotorRight) && packetStruct.value > 180)
     {
         return false;
     }
@@ -50,23 +50,23 @@ bool Packet::ValidatePacketFields(const uint8_t device_id, const MessageTypes me
     return true;
 }
 
-bool Packet::MakePacket(const uint8_t device_id, const MessageTypes message_type, const CommandTypes command_type, const uint8_t value, uint32_t& out_packet)
+bool Packet::MakePacket(const PacketStruct packetStruct, uint32_t& out_packet)
 {
     // if (out_packet == nullptr)
     // {
     //     return false; // Invalid output pointer
     // }
 
-    if (!ValidatePacketFields(device_id, message_type, command_type, value))
+    if (!ValidatePacketFields(packetStruct))
     {
         return false; // Invalid packet
     }
 
     out_packet = 0;
-    out_packet |= ((device_id & DEVICE_ID_MASK) << DEVICE_ID_SHIFT);
-    out_packet |= ((static_cast<uint8_t>(message_type) & MESSAGE_TYPE_MASK) << MESSAGE_TYPE_SHIFT);
-    out_packet |= ((static_cast<uint8_t>(command_type) & COMMAND_TYPE_MASK) << COMMAND_TYPE_SHIFT);
-    out_packet |= ((value & VALUE_MASK) << VALUE_SHIFT);
+    out_packet |= ((packetStruct.device_id & DEVICE_ID_MASK) << DEVICE_ID_SHIFT);
+    out_packet |= ((static_cast<uint8_t>(packetStruct.message_type) & MESSAGE_TYPE_MASK) << MESSAGE_TYPE_SHIFT);
+    out_packet |= ((static_cast<uint8_t>(packetStruct.command_type) & COMMAND_TYPE_MASK) << COMMAND_TYPE_SHIFT);
+    out_packet |= ((packetStruct.value & VALUE_MASK) << VALUE_SHIFT);
 
     uint8_t checksum_value = CalculateChecksum(out_packet);
     out_packet |= ((checksum_value & CHECKSUM_MASK) << CHECKSUM_SHIFT);
@@ -84,7 +84,7 @@ bool Packet::IsChecksumValid(const uint32_t packet)
 
 bool Packet::ValidatePacket(const uint32_t packet)
 {
-    return IsChecksumValid(packet) && ValidatePacketFields(GetDeviceId(packet), GetMessageType(packet), GetCommandType(packet), GetValue(packet));
+    return IsChecksumValid(packet) && ValidatePacketFields(PacketStruct{GetDeviceId(packet), GetMessageType(packet), GetCommandType(packet), GetValue(packet)});
 }
 
 void Packet::PacketToBytes(const uint32_t packet, uint8_t* out_bytes)

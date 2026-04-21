@@ -1,6 +1,6 @@
 #include "UartConnection.h"
 
-#include "Packet.h"
+#include "RPiPacket.h"
 
 #include <fcntl.h>
 #include <unistd.h>
@@ -27,15 +27,15 @@ void UartConnection::Init()
     tcsetattr(m_port, TCSANOW, &tty);
 }
 
-void UartConnection::SendPacket(const uint8_t device_id, const MessageTypes message_type, const CommandTypes command_type, const uint8_t value)
+void UartConnection::SendPacket(const PacketStruct packetStruct)
 {
     uint32_t packet = 0;
     uint8_t buffer[Packet::PACKET_SIZE_PLUS_HEADER];
 
-    Packet::MakePacket(device_id, message_type, command_type, value, packet);
+    Packet::MakePacket(packetStruct, packet);
     Packet::PacketToBytes(packet, buffer);
 
-    std::cout << "Sent packadge: " << message_type << " CM: " << command_type << " Value: " << static_cast<int>(value) << std::endl;
+    std::cout << "Sent packadge: " << packetStruct.message_type << " CM: " << packetStruct.command_type << " Value: " << static_cast<int>(packetStruct.value) << std::endl;
     
     std::cout << "Packet bytes: ";
     for (int i = 0; i < Packet::PACKET_SIZE_PLUS_HEADER; ++i)

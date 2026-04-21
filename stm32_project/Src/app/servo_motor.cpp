@@ -11,7 +11,7 @@ extern UART_HandleTypeDef huart2;
 #include <cstring>
 #include <cstdint>
 
-#include "app/packet.hpp"
+#include "app/stm_packet.hpp"
 
 // int __io_putchar(int ch)
 // {
@@ -110,44 +110,44 @@ void ServoMotor::RunCommand(uint32_t command)
 void ServoMotor::RunTestSequence()
 {
     uint32_t angle = 0;
-    if (Packet::MakePacket(0, MessageTypes::Command, CommandTypes::MotorLeft, 10, angle))
+    if (Packet::MakePacket(PacketStruct{0, MessageTypes::Command, CommandTypes::MotorLeft, 10}, angle))
     {
         RunCommand(angle);
         return;
     }
     
-    if (Packet::MakePacket(0, MessageTypes::Command, CommandTypes::MotorLeft, 10, angle))
+    if (Packet::MakePacket(PacketStruct{0, MessageTypes::Command, CommandTypes::MotorLeft, 10}, angle))
     {
         RunCommand(angle);
         HAL_Delay(1000);
     }
 
-    if (Packet::MakePacket(0, MessageTypes::Command, CommandTypes::MotorLeft, 10, angle))
+    if (Packet::MakePacket(PacketStruct{0, MessageTypes::Command, CommandTypes::MotorLeft, 10}, angle))
     {
         RunCommand(angle);
         HAL_Delay(1000);
     }
 
-    if (Packet::MakePacket(0, MessageTypes::Command, CommandTypes::MotorLeft, 10, angle))
+    if (Packet::MakePacket(PacketStruct{0, MessageTypes::Command, CommandTypes::MotorLeft, 10}, angle))
     {
         RunCommand(angle);
         HAL_Delay(1000);
 
     }
 
-    if (Packet::MakePacket(0, MessageTypes::Command, CommandTypes::MotorRight, 10, angle))
+    if (Packet::MakePacket(PacketStruct{0, MessageTypes::Command, CommandTypes::MotorRight, 10}, angle))
     {
         RunCommand(angle);
         HAL_Delay(1000);
     }
 
-    if (Packet::MakePacket(0, MessageTypes::Command, CommandTypes::MotorRight, 10, angle))
+    if (Packet::MakePacket(PacketStruct{0, MessageTypes::Command, CommandTypes::MotorRight, 10}, angle))
     {
         RunCommand(angle);
         HAL_Delay(1000);
     }
 
-    if (Packet::MakePacket(0, MessageTypes::Command, CommandTypes::MotorRight, 10, angle))
+    if (Packet::MakePacket(PacketStruct{0, MessageTypes::Command, CommandTypes::MotorRight, 10}, angle))
     {
         RunCommand(angle);
         HAL_Delay(1000);

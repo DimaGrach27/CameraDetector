@@ -8,7 +8,7 @@ extern "C"
 //C++ includes
 #include "app/servo_motor.hpp"
 #include "app/helpers/ring_buffer.hpp"
-#include "app/packet.hpp"
+#include "app/stm_packet.hpp"
 
 #include <atomic>
 

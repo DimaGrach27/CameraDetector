@@ -1,7 +1,7 @@
 #include "CameraStreamer.h"
 #include "MjpegHttpServer.h"
-#include "Packet.h"
-#include "UartConnection.h"
+#include "Connection/RPiPacket.h"
+#include "Connection/UartConnection.h"
 
 #include <opencv2/opencv.hpp>
 

@@ -6,12 +6,12 @@
 
 #include "FaceTracker.h"
 #include "FrameBuffer.h"
-#include "UartConnection.h"
+#include "Connection/IConnection.h"
 
 class CameraStreamer
 {
 public:
-    CameraStreamer(UartConnection& uartConnection);
+    CameraStreamer(IConnection& connection);
     ~CameraStreamer();
 
     bool Start();
@@ -28,7 +28,7 @@ private:
     FaceTracker m_faceTracker;
     FrameBuffer m_frameBuffer;
 
-    UartConnection& m_uartConnection;
+    IConnection& m_connection;
 
     bool m_previousDetection = false;
     bool m_currentDetection = false;

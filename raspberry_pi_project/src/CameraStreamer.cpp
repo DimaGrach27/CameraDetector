@@ -9,11 +9,11 @@
 #include <opencv2/core/utils/logger.hpp>
 
 #include "FaceTracker.h"
-#include "Packet.h"
-#include "UartConnection.h"
+#include "Connection/RPiPacket.h"
+#include "Connection/IConnection.h"
 
-CameraStreamer::CameraStreamer(UartConnection& uartConnection)
-    :m_uartConnection(uartConnection)
+CameraStreamer::CameraStreamer(IConnection& connection)
+    :m_connection(connection)
 {
 
 }
@@ -102,12 +102,12 @@ void CameraStreamer::Update(int frameCount)
     uint8_t moveValue = static_cast<uint8_t>(std::abs(m_faceTracker.GetHorizontalOffsetNormalized()) * MoveSpeed);
     if (m_faceTracker.GetHorizontalOffsetPx() > DeathZoneThreshold)
     {
-        m_uartConnection.SendPacket(0, MessageTypes::Command, CommandTypes::MotorRight, moveValue);
+        m_connection.SendPacket(PacketStruct{0, MessageTypes::Command, CommandTypes::MotorRight, moveValue});
         m_currentDetection = false;
     }
     else if ((m_faceTracker.GetHorizontalOffsetPx() < -DeathZoneThreshold))
     {
-        m_uartConnection.SendPacket(0, MessageTypes::Command, CommandTypes::MotorLeft, moveValue);
+        m_connection.SendPacket(PacketStruct{0, MessageTypes::Command, CommandTypes::MotorLeft, moveValue});
         m_currentDetection = false;
     }
     else
@@ -119,11 +119,11 @@ void CameraStreamer::Update(int frameCount)
     {
         if (m_currentDetection)
         {
-            m_uartConnection.SendPacket(0, MessageTypes::Command, CommandTypes::SetLED, 1);
+            m_connection.SendPacket(PacketStruct{0, MessageTypes::Command, CommandTypes::SetLED, 1});
         }
         else
         {
-            m_uartConnection.SendPacket(0, MessageTypes::Command, CommandTypes::SetLED, 0);
+            m_connection.SendPacket(PacketStruct{0, MessageTypes::Command, CommandTypes::SetLED, 0});
         }
     }
 
