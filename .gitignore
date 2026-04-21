@@ -2,6 +2,10 @@
 .DS_Store
 Thumbs.db
 
+# JetBrains
+.idea/
+*.iml
+
 # VS Code
 .vscode/*.log
 .vscode/ipch
