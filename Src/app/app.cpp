@@ -1,5 +1,6 @@
 #include "app.hpp"
 #include "app/packet.hpp"
+#include "stm32f4xx_hal_def.h"
 
 #include <cstdint>
 #include <iostream>
@@ -15,13 +16,15 @@ extern UART_HandleTypeDef huart2;
 //   return ch;
 // }
 
-void App::Run(TIM_HandleTypeDef& htim1, UART_HandleTypeDef& huart1)
+void App::Run(TIM_HandleTypeDef& htim1, UART_HandleTypeDef& huart1, SPI_HandleTypeDef& hspi2)
 {
     m_huart1 = &huart1;
+    m_hspi2 = &hspi2;
 
     m_servoMotor.Init(htim1);
 
-    HAL_UART_Receive_IT(m_huart1, &m_rxByte, 1);
+    // HAL_UART_Receive_IT(m_huart1, &m_rxByte, 1);
+    HAL_SPI_Receive_IT(m_hspi2, &m_rxByte, 1);
 }
 
 void App::Loop()
@@ -141,13 +144,29 @@ void App::GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 
 void App::UART_RxCpltCallback(UART_HandleTypeDef *huart)
 {
-    if (huart->Instance == USART1)
-    {
-        m_packetBuffer.Push(m_rxByte);
+    // if (huart->Instance == USART1)
+    // {
+    //     m_packetBuffer.Push(m_rxByte);
 
-        if (HAL_UART_Receive_IT(huart, &m_rxByte, 1) != HAL_OK)
+    //     if (HAL_UART_Receive_IT(huart, &m_rxByte, 1) != HAL_OK)
+    //     {
+    //         HAL_UART_Receive_IT(huart, &m_rxByte, 1);
+    //     }
+    // }
+}
+
+void App::SPI_RxHalfCpltCallback(SPI_HandleTypeDef *hspi)
+{
+    if (hspi->Instance == SPI2)
+    {
+        if (HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_4) == GPIO_PIN_SET)
         {
-            HAL_UART_Receive_IT(huart, &m_rxByte, 1);
+            m_packetBuffer.Push(m_rxByte);
+            
+            if (HAL_SPI_Receive_IT(m_hspi2, &m_rxByte, 1) != HAL_OK)
+            {
+                HAL_SPI_Receive_IT(m_hspi2, &m_rxByte, 1);
+            }
         }
     }
 }

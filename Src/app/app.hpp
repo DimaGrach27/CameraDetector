@@ -15,12 +15,13 @@ extern "C"
 class App
 {
 public:
-    void Run(TIM_HandleTypeDef& htim1, UART_HandleTypeDef& huart1);
+    void Run(TIM_HandleTypeDef& htim1, UART_HandleTypeDef& huart1, SPI_HandleTypeDef& hspi2);
     void Loop();
     void Release();
 
     void GPIO_EXTI_Callback(uint16_t GPIO_Pin);
     void UART_RxCpltCallback(UART_HandleTypeDef *huart);
+    void SPI_RxHalfCpltCallback(SPI_HandleTypeDef *hspi);
 
 private:
     void ProcessPacket();
@@ -35,4 +36,5 @@ private:
     RingBuffer128 m_packetBuffer;
 
     UART_HandleTypeDef* m_huart1;
+    SPI_HandleTypeDef* m_hspi2;
 };
