@@ -2,6 +2,7 @@
 #include "MjpegHttpServer.h"
 #include "Connection/RPiPacket.h"
 #include "Connection/UartConnection.h"
+#include "Connection/SPIConnection.h"
 
 #include <opencv2/opencv.hpp>
 
@@ -30,11 +31,11 @@
 
 int main()
 {
-    UartConnection uartConnection;
-    CameraStreamer cameraStreamer(uartConnection);
+    SPIConnection connection;
+    CameraStreamer cameraStreamer(connection);
     MjpegHttpServer httpServer(cameraStreamer);
 
-    uartConnection.Init();
+    connection.Init();
 
     if (!cameraStreamer.Start())
     {

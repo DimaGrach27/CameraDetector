@@ -103,8 +103,8 @@ void FaceTracker::Track(const cv::Mat &frame)
         cv::putText(frame, "Searching face...", cv::Point(20, 40), cv::FONT_HERSHEY_SIMPLEX, 1.0, cv::Scalar(0, 255, 0), 2);
     }
     
-    m_faceRecognizer.Tick(frame, m_face);
-    m_faceRecognizer.Recognize(frame, m_face);
+    // m_faceRecognizer.Tick(frame, m_face);
+    // m_faceRecognizer.Recognize(frame, m_face);
 }
 
 bool FaceTracker::HasTrackedFace() const

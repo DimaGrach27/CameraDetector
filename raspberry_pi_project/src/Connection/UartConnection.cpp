@@ -12,6 +12,8 @@
 
 void UartConnection::Init()
 {
+    std::cout << "UartConnection Init" << std::endl;
+
     m_port = open("/dev/ttyAMA0", O_RDWR | O_NOCTTY);
 
     termios tty{};
