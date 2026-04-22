@@ -144,6 +144,13 @@ void App::GPIO_EXTI_Callback(uint16_t GPIO_Pin)
     {
         m_buttonPressed = true;
     }
+
+    if (GPIO_Pin == PIR_Sensor_Pin)
+    {
+        m_motionDetected = HAL_GPIO_ReadPin(PIR_Sensor_GPIO_Port, PIR_Sensor_Pin);
+
+        HAL_GPIO_WritePin(PIR_Sensor_LED_GPIO_Port, PIR_Sensor_LED_Pin, m_motionDetected ? GPIO_PIN_SET : GPIO_PIN_RESET);
+    }
 }
 
 void App::UART_RxCpltCallback(UART_HandleTypeDef *huart)

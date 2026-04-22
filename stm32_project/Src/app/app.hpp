@@ -30,6 +30,7 @@ private:
     ServoMotor m_servoMotor;
 
     std::atomic<bool> m_buttonPressed{false};
+    volatile bool m_motionDetected{false};
     
     uint8_t m_rxBuffer[Packet::PACKET_SIZE_PLUS_HEADER];
     uint8_t m_txBuffer[Packet::PACKET_SIZE_PLUS_HEADER];
