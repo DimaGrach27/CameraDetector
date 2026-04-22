@@ -8,6 +8,7 @@
 
 #include <fcntl.h>
 #include <iomanip>
+#include <ostream>
 #include <unistd.h>
 #include <sys/ioctl.h>
 #include <linux/spi/spidev.h>
@@ -18,7 +19,7 @@ void SPIConnection::Init()
 {
     std::cout << "SPIConnection Init" << std::endl;
 
-    if (!Open("/dev/spidev10.0", 1000000))
+    if (!Open("/dev/spidev0.0", 100000, SPI_MODE_0))
     {
         std::perror("Can't open /dev/spi");
     }
@@ -36,7 +37,7 @@ void SPIConnection::SendPacket(const PacketStruct packetStruct)
     uint8_t buffer[Packet::PACKET_SIZE_PLUS_HEADER];
     Packet::PacketToBytes(txData, buffer);
 
-    if (Send(buffer, Packet::PACKET_SIZE_PLUS_HEADER))
+    if (!Send(buffer, Packet::PACKET_SIZE_PLUS_HEADER))
     {
         std::cout << "Can't send packet!" << std::endl;
         return;
@@ -67,6 +68,7 @@ bool SPIConnection::Open(const char* devicePath, uint32_t speedHz, uint8_t mode)
     m_speedHz = speedHz;
     m_mode = mode;
     m_bitsPerWord = 8;
+    m_lsb = 0;
 
     if (ioctl(m_fd, SPI_IOC_WR_MODE, &m_mode) < 0)
     {
@@ -110,6 +112,25 @@ bool SPIConnection::Open(const char* devicePath, uint32_t speedHz, uint8_t mode)
         return false;
     }
 
+    if (ioctl(m_fd, SPI_IOC_WR_LSB_FIRST, &m_lsb) < 0)
+    {
+        std::perror("SPI_IOC_WR_LSB_FIRST");
+        Close();
+        return false;
+    }
+
+    if (ioctl(m_fd, SPI_IOC_RD_LSB_FIRST, &m_lsb) < 0)
+    {
+        std::perror("SPI_IOC_RD_LSB_FIRST");
+        Close();
+        return false;
+    }
+
+    printf("SPI CONFIG:\n");
+    printf("mode: %u\n", m_mode);
+    printf("bits: %u\n", m_bitsPerWord);
+    printf("speed: %u\n", m_speedHz);
+    printf("LSB first: %u\n", m_lsb);
     return true;
 }
 
@@ -137,11 +158,19 @@ bool SPIConnection::Transfer(const uint8_t* txData, uint8_t* rxData, size_t size
     transfer.bits_per_word = m_bitsPerWord;
     transfer.delay_usecs = 0;
 
+    printf("Start sending\n");
+    for (uint32_t i = 0; i < size; ++i)
+    {
+        printf("%02X", txData[i]);
+    }
+    printf("\n");
     if (ioctl(m_fd, SPI_IOC_MESSAGE(1), &transfer) < 0)
     {
         std::perror("SPI_IOC_MESSAGE");
         return false;
     }
+
+    printf("End sending\n");
 
     return true;
 }
@@ -161,4 +190,29 @@ bool SPIConnection::Send(const uint8_t* txData, size_t size)
     }
 
     return Transfer(txData, dummyRx, size);
+}
+
+void SPIConnection::TestSend()
+{
+    uint8_t tx[5] = {0x11, 0x22, 0x33, 0x44, 0x55};
+    uint8_t rx[5] = {};
+
+    Send(tx, 5);
+    sleep(1);
+
+    uint8_t tx2[5] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
+    Send(tx2, 5);
+    sleep(1);
+
+    uint8_t tx3[5] = {0x00, 0x00, 0x00, 0x00, 0x00};
+    Send(tx3, 5);
+    sleep(1);
+
+    uint8_t tx4[5] = {0xAA, 0xAA, 0xAA, 0xAA, 0xAA};
+    Send(tx4, 5);
+    sleep(1);
+
+    uint8_t tx5[5] = {0x55, 0x55, 0x55, 0x55, 0x55};
+    Send(tx5, 5);
+    sleep(1);
 }

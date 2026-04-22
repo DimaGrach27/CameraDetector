@@ -11,6 +11,7 @@ class SPIConnection : public IConnection
 public:
     void Init() override;
     void SendPacket(const PacketStruct packetStruct) override;
+    void TestSend();
 
 private:
     bool Open(const char* devicePath, uint32_t speedHz, uint8_t mode = SPI_MODE_0);
@@ -24,4 +25,5 @@ private:
     uint32_t m_speedHz = 0;
     uint8_t m_mode = SPI_MODE_0;
     uint8_t m_bitsPerWord = 8;
+    uint8_t m_lsb = 0;
 };

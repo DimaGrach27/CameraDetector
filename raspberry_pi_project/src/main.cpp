@@ -36,6 +36,7 @@ int main()
     MjpegHttpServer httpServer(cameraStreamer);
 
     connection.Init();
+    // connection.TestSend();
 
     if (!cameraStreamer.Start())
     {
