@@ -1,84 +1,52 @@
-############################
-# Build folders
-############################
-build/
-cmake-build-*/
-Debug/
-Release/
-out/
-
-############################
-# CMake
-############################
-CMakeFiles/
-CMakeCache.txt
-cmake_install.cmake
-compile_commands.json
-Makefile
-
-############################
-# Compiled objects
-############################
-*.o
-*.obj
-*.elf
-*.bin
-*.hex
-*.map
-*.a
-*.so
-*.d
-*.su
-
-############################
-# STM32CubeMX generated
-############################
-*.launch
-
-############################
-# VS Code
-############################
-.vscode/*
-!.vscode/settings.json
-!.vscode/tasks.json
-!.vscode/launch.json
-!.vscode/extensions.json
-
-############################
-# macOS
-############################
+# OS
 .DS_Store
+Thumbs.db
 
-############################
-# Logs
-############################
-*.log
-
-############################
-# Temporary files
-############################
-*.tmp
-*.swp
-*~
-
-############################
-# Python (якщо використовуєш scripts)
-############################
-__pycache__/
-*.pyc
-
-############################
-# CLion / JetBrains (якщо відкриєш)
-############################
+# JetBrains
 .idea/
+*.iml
 
-############################
-# STLink debug
-############################
-*.stlink
-stm32_project/.clangd
-stm32_project/.mxproject
-stm32_project/.settings/bundles-lock.store.json
-stm32_project/.settings/bundles.store.json
-stm32_project/.settings/ide.store.json
-stm32_project/.vscode/c_cpp_properties.json
+# VS Code
+.vscode/*.log
+.vscode/ipch
+
+# CMake
+**/build/
+**/cmake-build-*/
+**/CMakeFiles/
+**/CMakeCache.txt
+**/compile_commands.json
+**/Makefile
+
+# Binaries / libs
+**/*.o
+**/*.obj
+**/*.a
+**/*.so
+**/*.dylib
+**/*.dll
+**/*.exe
+**/*.elf
+**/*.bin
+**/*.hex
+**/*.map
+**/*.list
+
+# STM32 / CubeIDE / generated build outputs
+**/Debug/
+**/Release/
+**/.settings/
+**/.mxproject
+**/*.launch
+
+# Logs
+**/*.log
+
+# Python
+**/__pycache__/
+**/*.pyc
+**/.venv/
+
+# Temporary files
+**/*.tmp
+**/*.swp

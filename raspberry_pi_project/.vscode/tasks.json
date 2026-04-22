@@ -1,0 +1,56 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "cmake-configure-rpi",
+      "type": "shell",
+      "command": "cmake --preset rpi-debug-local",
+      "problemMatcher": []
+    },
+    {
+      "label": "cmake-build-rpi",
+      "type": "shell",
+      "command": "cmake --build --preset build/rpi-debug-local",
+      "dependsOn": "cmake-configure-rpi",
+      "group": "build",
+      "problemMatcher": "$gcc"
+    },
+    {
+      "label": "deploy-rpi",
+      "type": "shell",
+      "command": "${workspaceFolder}/scripts/deploy_to_pi.sh",
+      "dependsOn": "cmake-build-rpi",
+      "problemMatcher": []
+    },
+    {
+      "label": "run-gdbserver-rpi",
+      "type": "shell",
+      "command": "ssh pi@192.168.0.107 'bash /home/pi/camera_tracking/scripts/run_gdbserver.sh'",
+      "dependsOn": "deploy-rpi",
+      "isBackground": true,
+      "problemMatcher": {
+        "owner": "custom",
+        "pattern": [
+          {
+            "regexp": ".",
+            "file": 1,
+            "location": 2,
+            "message": 3
+          }
+        ],
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": ".",
+          "endsPattern": "Listening on port 2345|gdbserver.*2345"
+        }
+      }
+    },
+    {
+      "label": "run-rpi",
+      "type": "shell",
+      "command": "ssh pi@192.168.0.107 'cd /home/pi/camera_tracking && export LD_LIBRARY_PATH=/usr/lib/aarch64-linux-gnu:$LD_LIBRARY_PATH && ./bin/Camera_tracking'",
+      "dependsOn": "deploy-rpi",
+      "problemMatcher": []
+    }
+  ]
+}

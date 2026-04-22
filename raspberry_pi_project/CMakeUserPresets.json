@@ -1,0 +1,23 @@
+{
+  "version": 6,
+  "configurePresets": [
+    {
+      "name": "rpi-debug-local",
+      "inherits": "rpi-debug",
+      "environment": {
+        "PKG_CONFIG_SYSROOT_DIR": "/Users/dhrachov/rpi-sysroot",
+        "PKG_CONFIG_LIBDIR": "/Users/dhrachov/rpi-sysroot/usr/lib/aarch64-linux-gnu/pkgconfig:/Users/dhrachov/rpi-sysroot/usr/lib/pkgconfig:/Users/dhrachov/rpi-sysroot/usr/share/pkgconfig"
+      },
+      "cacheVariables": {
+        "OpenCV_DIR": "/Users/dhrachov/rpi-sysroot/usr/lib/aarch64-linux-gnu/cmake/opencv4"
+      }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "build/rpi-debug-local",
+      "configurePreset": "rpi-debug-local",
+      "jobs": 8
+    }
+  ]
+}

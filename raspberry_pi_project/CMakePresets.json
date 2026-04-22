@@ -1,0 +1,56 @@
+{
+  "version": 6,
+  "cmakeMinimumRequired": {
+    "major": 3,
+    "minor": 25,
+    "patch": 0
+  },
+  "configurePresets": [
+    {
+      "name": "base",
+      "hidden": true,
+      "generator": "Unix Makefiles",
+      "binaryDir": "${sourceDir}/build/${presetName}",
+      "cacheVariables": {
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
+        "CMAKE_TRY_COMPILE_TARGET_TYPE": "STATIC_LIBRARY"
+      }
+    },
+    {
+      "name": "rpi-debug",
+      "inherits": "base",
+      "toolchainFile": "${sourceDir}/cmake/toolchains/rpi-aarch64.cmake",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "CMAKE_SYSTEM_NAME": "Linux",
+        "CMAKE_SYSTEM_PROCESSOR": "aarch64",
+        "CMAKE_OSX_ARCHITECTURES": "",
+        "CMAKE_OSX_SYSROOT": "",
+        "CMAKE_OSX_DEPLOYMENT_TARGET": ""
+      }
+    },
+    {
+      "name": "rpi-docker-debug",
+      "generator": "Unix Makefiles",
+      "binaryDir": "${sourceDir}/build/rpi-docker-debug",
+      "toolchainFile": "${sourceDir}/cmake/toolchains/rpi-aarch64-docker.cmake",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
+        "CMAKE_TRY_COMPILE_TARGET_TYPE": "STATIC_LIBRARY"
+      }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "build/rpi-debug",
+      "configurePreset": "rpi-debug",
+      "jobs": 8
+    },
+    {
+      "name": "build/rpi-docker-debug",
+      "configurePreset": "rpi-docker-debug",
+      "jobs": 8
+    }
+  ]
+}
