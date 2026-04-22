@@ -34,7 +34,7 @@ extern "C" void App_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t S
     // app.UARTEx_RxEventCallback(huart, Size);
 }
 
-extern "C" void App_SPI_RxHalfCpltCallback(SPI_HandleTypeDef *hspi)
+extern "C" void App_SPI_RxCpltCallback(SPI_HandleTypeDef *hspi)
 {
-    app.SPI_RxHalfCpltCallback(hspi);
+    app.SPI_RxCpltCallback(hspi);
 }

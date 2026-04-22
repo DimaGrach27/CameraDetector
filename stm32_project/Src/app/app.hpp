@@ -21,7 +21,7 @@ public:
 
     void GPIO_EXTI_Callback(uint16_t GPIO_Pin);
     void UART_RxCpltCallback(UART_HandleTypeDef *huart);
-    void SPI_RxHalfCpltCallback(SPI_HandleTypeDef *hspi);
+    void SPI_RxCpltCallback(SPI_HandleTypeDef *hspi);
 
 private:
     void ProcessPacket();
@@ -31,7 +31,8 @@ private:
 
     std::atomic<bool> m_buttonPressed{false};
     
-    uint8_t m_rxByte;
+    uint8_t m_rxBuffer[Packet::PACKET_SIZE_PLUS_HEADER];
+    uint8_t m_txBuffer[Packet::PACKET_SIZE_PLUS_HEADER];
 
     RingBuffer128 m_packetBuffer;
 

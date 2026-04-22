@@ -1,5 +1,6 @@
 #include "app.hpp"
 #include "app/stm_packet.hpp"
+#include "protocol/Packet.h"
 #include "stm32f4xx_hal_def.h"
 
 #include <cstdint>
@@ -9,13 +10,6 @@ extern UART_HandleTypeDef huart2;
 #include <cstdio>
 #include <cstring>
 
-// int __io_putchar(int ch)
-// {
-//   uint8_t byte = (uint8_t)ch;
-//   HAL_UART_Transmit(&huart2, &byte, 1, HAL_MAX_DELAY);
-//   return ch;
-// }
-
 void App::Run(TIM_HandleTypeDef& htim1, UART_HandleTypeDef& huart1, SPI_HandleTypeDef& hspi2)
 {
     m_huart1 = &huart1;
@@ -24,7 +18,15 @@ void App::Run(TIM_HandleTypeDef& htim1, UART_HandleTypeDef& huart1, SPI_HandleTy
     m_servoMotor.Init(htim1);
 
     // HAL_UART_Receive_IT(m_huart1, &m_rxByte, 1);
-    HAL_SPI_Receive_IT(m_hspi2, &m_rxByte, 1);
+    HAL_StatusTypeDef spiStatus = HAL_SPI_Receive_IT(m_hspi2, m_rxBuffer, Packet::PACKET_SIZE_PLUS_HEADER);
+    // HAL_StatusTypeDef spiStatus = HAL_SPI_TransmitReceive_IT(m_hspi2, m_txBuffer, m_rxBuffer, Packet::PACKET_SIZE_PLUS_HEADER);
+    
+    if (spiStatus != HAL_OK)
+    {
+        printf("SPI error receive, status = %d", spiStatus);
+    }
+
+    printf("====APP started====\n");
 }
 
 void App::Loop()
@@ -62,6 +64,8 @@ void App::ProcessPacket()
         {
             return;
         }
+
+        printf("Header = %02X \n", headerByte);
 
         if (Packet::IsHeader(headerByte))
         {
@@ -155,18 +159,20 @@ void App::UART_RxCpltCallback(UART_HandleTypeDef *huart)
     // }
 }
 
-void App::SPI_RxHalfCpltCallback(SPI_HandleTypeDef *hspi)
+void App::SPI_RxCpltCallback(SPI_HandleTypeDef *hspi)
 {
     if (hspi->Instance == SPI2)
     {
-        if (HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_4) == GPIO_PIN_SET)
+        for (uint8_t i = 0; i < Packet::PACKET_SIZE_PLUS_HEADER; i++)
         {
-            m_packetBuffer.Push(m_rxByte);
-            
-            if (HAL_SPI_Receive_IT(m_hspi2, &m_rxByte, 1) != HAL_OK)
-            {
-                HAL_SPI_Receive_IT(m_hspi2, &m_rxByte, 1);
-            }
+            m_packetBuffer.Push(m_rxBuffer[i]);
+        }
+        
+        // m_packetBuffer.Push(m_rxByte);
+        
+        if (HAL_SPI_Receive_IT(m_hspi2, m_rxBuffer, Packet::PACKET_SIZE_PLUS_HEADER) != HAL_OK)
+        {
+            HAL_SPI_Receive_IT(m_hspi2, m_rxBuffer, Packet::PACKET_SIZE_PLUS_HEADER);
         }
     }
 }
