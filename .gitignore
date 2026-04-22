@@ -76,3 +76,9 @@ __pycache__/
 # STLink debug
 ############################
 *.stlink
+stm32_project/.clangd
+stm32_project/.mxproject
+stm32_project/.settings/bundles-lock.store.json
+stm32_project/.settings/bundles.store.json
+stm32_project/.settings/ide.store.json
+stm32_project/.vscode/c_cpp_properties.json
